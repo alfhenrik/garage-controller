@@ -5,7 +5,7 @@
             "name": "Garage",
             "pin": 4,
             "edge": "both",
-            "openingTimeout": 5000
+            "openingTimeout": 15000
         }
     },
     "relays": {
