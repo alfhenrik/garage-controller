@@ -30,31 +30,35 @@
             }
 
             .sensor-open {
-                border: 1px solid #ff3333;
+                border: 1px solid #cc0000;
             }
 
             .sensor-open i {
-                color: #ff3333;
+                color: #cc0000;
             }
 
             .sensor-closed {
-                border: 1px solid #00cc00;
+                border: 1px solid #339933;
             }
 
             .sensor-closed i {
-                color: #00cc00;
+                color: #339933;
             }
 
-            .sensor-default {
-                border: 1px solid #3385ff;
+            .sensor-opening {
+                border: 1px solid #80b3ff;
+            }
+
+            .sensor-opening i {
+                color: #80b3ff;
             }
 
             .connection-state.connected {
-                color: #00cc00;
+                color: #339933;
             }
 
             .connection-state.disconnected {
-                color: #ff3333;
+                color: #cc0000;
             }
 
             .list-unstyled {
@@ -196,7 +200,7 @@
                         case 'closed':
                             return prefix + '-' + state;
                         default:
-                            return prefix + '-default';
+                            return prefix + '-opening';
                     }
                 }
 
@@ -209,7 +213,7 @@
                         this.connection.onopen = function () {
                             console.log('WebSocket: connected');
                             var logLi = addElement(logList, 'li');
-                            addElement(logLi, 'span', null, null, '[' + new Date().toLocaleString() + ']');
+                            addElement(logLi, 'span', 'text-info', null, '[' + new Date().toLocaleString() + ']');
                             addElement(logLi, 'span', null, null, ' WebSocket connected');
                             $('.connection-state').removeClass('disconnected').addClass('connected');
                             $('.connection-state').attr('title', 'WebSocket is connected');
@@ -219,7 +223,7 @@
                         this.connection.onerror = function (error) {
                             console.log(error);
                             var logLi = addElement(logList, 'li');
-                            addElement(logLi, 'span', null, null, '[' + new Date().toLocaleString() + ']');
+                            addElement(logLi, 'span', null, 'text-info', '[' + new Date().toLocaleString() + ']');
                             addElement(logLi, 'span', null, null, ' WebSocket connection error: ' + error);
                             self.connection.close();
                         };
@@ -230,7 +234,7 @@
                             $('.connection-state').attr('title', 'WebSocket is disconnected');
                             $('.connection-state').tooltip();
                             var logLi = addElement(logList, 'li');
-                            addElement(logLi, 'span', null, null, '[' + new Date().toLocaleString() + ']');
+                            addElement(logLi, 'span', 'text-info', null, '[' + new Date().toLocaleString() + ']');
                             addElement(logLi, 'span', null, null, ' WebSocket disconnected');
                             setTimeout(function() { self.init() }, 5000);
                         };
@@ -250,13 +254,13 @@
                                             addElement(sensorHeader, 'small', null, sensorId + '-status', ' is ' + sensor.state)
                                         } else {
                                             var btn = D.getElementById(sensorId + '-button');
-                                            $(btn).removeClass((sensor.state === 'open' ? 'sensor-closed sensor-default' : sensor.state === 'closed' ? 'sensor-open sensor-default' : 'sensor-open sensor-closed'))
+                                            $(btn).removeClass((sensor.state === 'open' ? 'sensor-closed sensor-opening' : sensor.state === 'closed' ? 'sensor-open sensor-opening' : 'sensor-open sensor-closed'))
                                                 .addClass(getSensorStateClass(sensor.state, 'sensor'));
                                             var status = D.getElementById(sensorId + '-status');
-                                            name.innerText = ' is ' + sensor.state;
+                                            status.innerText = ' is ' + sensor.state;
                                         }
                                         var logLi = addElement(logList, 'li', 'sensor-log', sensorId + '-log');
-                                        addElement(logLi, 'span', 'sensor-state-occurred', sensorId + 'state-occurred', '[' + new Date(sensor.occurred).toLocaleString() + ']');
+                                        addElement(logLi, 'span', 'text-info', sensorId + 'state-occurred', '[' + new Date(sensor.occurred).toLocaleString() + ']');
                                         addElement(logLi, 'span', 'sensor-name', sensorId + 'name', ' ' + sensor.name + ' is ');
                                         addElement(logLi, 'span', 'sensor-state', sensorId + 'state', sensor.state);
                                     });
