@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <title>Garage controller</title>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" />
+
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+        <style>
+            body {
+                padding-top: 70px;
+            }
+
+            .sensor-element {
+                display: block;
+                width: 100%;
+                border-radius: 4px;
+                padding: 10px;
+                text-align: center;
+            }
+
+            .sensor-open {
+                border: 1px solid #ff3333;
+            }
+
+            .sensor-open i {
+                color: #ff3333;
+            }
+
+            .sensor-closed {
+                border: 1px solid #00cc00;
+            }
+
+            .sensor-closed i {
+                color: #00cc00;
+            }
+
+            .sensor-default {
+                border: 1px solid #3385ff;
+            }
+
+            .connection-state.connected {
+                color: #00cc00;
+            }
+
+            .connection-state.disconnected {
+                color: #ff3333;
+            }
+
+            .list-unstyled {
+                padding: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3 col-sm-12">
+                        <div class="navbar-header pull-right">
+                            <p class="navbar-text">
+                                <i class="connection-state fa fa-heartbeat fa-fw fa-lg" data-toggle="tooltip" data-placement="bottom"></i>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 col-sm-12">
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="active"><a href="#sensors" aria-controls="sensors" role="tab" data-toggle="tab">Sensors</a></li>
+                        <li role="presentation"><a href="#logs" aria-controls="logs" role="tab" data-toggle="tab">Logs</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="sensors">
+                            <ul class="list-unstyled" id="sensorList"></ul>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="logs">
+                            <ul class="list-unstyled" id="logList"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $(document).on('click','.navbar-collapse.in',function(e) {
+                if( $(e.target).is('a') && $(e.target).attr('class') != 'dropdown-toggle' ) {
+                    $(this).collapse('hide');
+                }
+            });
+
+            (function (D, window, undefined) {
+                'use strict';
+                var sensorList = D.getElementById('sensorList');
+                var logList = D.getElementById('logList');
+                var sensorAdded = false;
+
+                function isValidJson(json) {
+                    try {
+                        return JSON.parse(json);
+                    } catch (e) {
+                        return false;
+                    }
+                }
+
+                function addElement(parent, type, classN, id, texts) {
+                    var el = D.createElement(type);
+                    if(classN) {
+                        el.className = classN;
+                    }
+                    if(id) {
+                        el.id = id;
+                    }
+                    if(texts) {
+                        el.appendChild(D.createTextNode(texts));
+                    }
+                    parent.appendChild(el);
+                    return el;
+                }
+
+                function setNewButtons(data) {
+                    //setButtons = true;
+                    //Object.keys(data).forEach(function (button) {
+                    //    var counter = addElement(clicks, 'span', 'clicker', button + 'click', button + ': ');
+                    //    var numb = addElement(counter, 'span', 'buttonpress', button, data[button].clicks);
+                    //    addElement(counter, 'small', 'nclicks', button + 'number', ' clicks');
+                    //    clickButtons[button] = {};
+                    //    clickButtons[button].counter = numb;
+                    //    clickButtons[button].clicks = counter;
+                    //});
+                }
+
+                function setNewLeds(data) {
+                    //setLeds = true;
+                    //Object.keys(data).forEach(function (id) {
+                    //    var stat = data[id].status;
+                    //    var statv = data[id].value;
+                    //    var onoffstat = (statv === 1) ? 'off' : 'on';
+                    //    var blinkstat = (stat !== 'blinking') ? (stat !== 'stop') ? 'blink' : 'blink' : 'stop'; 
+                    //    var p = addElement(main, 'p', 'led', id + 'p', '');
+                    //    var lhead = addElement(p, 'h3', 'ledheader', id + 'h3', id);
+                    //    var onled = addElement(p, 'input', 'timer', id + 'on', '');
+                    //    var offled = addElement(p, 'input', 'timer', id + 'off', '');
+                    //    var ledswitch = addElement(p, 'button', 'button', id + 'b', onoffstat);
+                    //    var ledblink = addElement(p, 'button', 'button', id + 'blink', blinkstat);
+                    //    ledswitch.style.background = (onoffstat === 'on') ? '#27ae60' : '#2ecc71';
+                    //    ledblink.style.background = (blinkstat === 'blink') ? '#1abc9c' : '#16a085';
+                    //    onled.type = 'number';
+                    //    offled.type = 'number';
+                    //    onled.value = 100;
+                    //    offled.value = 100;
+                    //    leds[id] =  {
+                    //        on: onled,
+                    //        off: offled
+                    //    };
+                    //    ledbuttons[id] = {
+                    //        switch: ledswitch,
+                    //        blink: ledblink
+                    //    };
+                    //    ledbuttons[id].switch.onclick = onoffclick;
+                    //    ledbuttons[id].blink.onclick = blinkclick;
+                    //});
+                }
+
+                function blinkclick(event) {
+                    //var name = event.target.id.replace('blink', '');
+                    //if (event.target.innerText !== 'stop') {
+                    //    var obj = {
+                    //        led: name,
+                    //        on: leds[name].on.value,
+                    //        off: leds[name].off.value,
+                    //        count: count.value
+                    //    };
+                    //    webSocketConnection.send(JSON.stringify(obj));
+                    //} else {
+                        //webSocketConnection.send(JSON.stringify({ led: name, stop: 1 }));
+                    //}
+                }
+
+                function getSensorStateClass(state, prefix) {
+                    switch(state) {
+                        case 'open':
+                            return prefix + '-' + state;
+                        case 'closed':
+                            return prefix + '-' + state;
+                        default:
+                            return prefix + '-default';
+                    }
+                }
+
+                var webSocketConnection = Object.create({
+                    init: function () {
+                        var self = this;
+
+                        this.connection = new WebSocket(window.location.origin.replace('http', 'ws'));
+
+                        this.connection.onopen = function () {
+                            console.log('WebSocket: connected');
+                            var logLi = addElement(logList, 'li');
+                            addElement(logLi, 'span', null, null, '[' + new Date().toLocaleString() + ']');
+                            addElement(logLi, 'span', null, null, ' WebSocket connected');
+                            $('.connection-state').removeClass('disconnected').addClass('connected');
+                            $('.connection-state').attr('title', 'WebSocket is connected');
+                            $('.connection-state').tooltip();
+                        };
+
+                        this.connection.onerror = function (error) {
+                            console.log(error);
+                            var logLi = addElement(logList, 'li');
+                            addElement(logLi, 'span', null, null, '[' + new Date().toLocaleString() + ']');
+                            addElement(logLi, 'span', null, null, ' WebSocket connection error: ' + error);
+                            self.connection.close();
+                        };
+
+                        this.connection.onclose = function () {
+                            console.log('WebSocket: disconnected');
+                            $('.connection-state').removeClass('connected').addClass('disconnected');
+                            $('.connection-state').attr('title', 'WebSocket is disconnected');
+                            $('.connection-state').tooltip();
+                            var logLi = addElement(logList, 'li');
+                            addElement(logLi, 'span', null, null, '[' + new Date().toLocaleString() + ']');
+                            addElement(logLi, 'span', null, null, ' WebSocket disconnected');
+                            setTimeout(function() { self.init() }, 5000);
+                        };
+
+                        this.connection.onmessage = function (message) {
+                            var json = isValidJson(message.data);
+                            if (json) {
+                                if(json.type === 'sensors') {
+                                    Object.keys(json.data).forEach(function(sensorId) {
+                                        var sensor = json.data[sensorId];
+                                        if(!sensorAdded) {
+                                            sensorAdded = true;
+                                            var li = addElement(sensorList, 'li', 'sensor', sensorId);
+                                            var btn = addElement(li, 'div', 'sensor-element ' + getSensorStateClass(sensor.state, 'sensor'), sensorId + '-button');
+                                            addElement(btn, 'i', 'fa fa-fw fa-car fa-5x');
+                                            var sensorHeader = addElement(btn, 'h3', null, sensorId + '-name', sensor.name)
+                                            addElement(sensorHeader, 'small', null, sensorId + '-status', ' is ' + sensor.state)
+                                        } else {
+                                            var btn = D.getElementById(sensorId + '-button');
+                                            $(btn).removeClass((sensor.state === 'open' ? 'sensor-closed sensor-default' : sensor.state === 'closed' ? 'sensor-open sensor-default' : 'sensor-open sensor-closed'))
+                                                .addClass(getSensorStateClass(sensor.state, 'sensor'));
+                                            var status = D.getElementById(sensorId + '-status');
+                                            name.innerText = ' is ' + sensor.state;
+                                        }
+                                        var logLi = addElement(logList, 'li', 'sensor-log', sensorId + '-log');
+                                        addElement(logLi, 'span', 'sensor-state-occurred', sensorId + 'state-occurred', '[' + new Date(sensor.occurred).toLocaleString() + ']');
+                                        addElement(logLi, 'span', 'sensor-name', sensorId + 'name', ' ' + sensor.name + ' is ');
+                                        addElement(logLi, 'span', 'sensor-state', sensorId + 'state', sensor.state);
+                                    });
+                                } else if(json.type === 'relays') {
+                                    Object.keys(json.data).forEach(function(relayId) {
+                                    });
+                                }
+                            //    if (!setLeds && json.type === 'leds') {
+                            //        return setNewLeds(json.data);
+                            //    } else if (!setButtons && json.type === 'buttons') {
+                            //        return setNewButtons(json.data);
+                            //    }
+                            //     if (json.type === 'leds') {
+                            //        Object.keys(json.data).forEach(function (led) {
+                            //            var stat = json.data[led].status;
+                            //            var b = (stat === 'blinking' || stat === 'stop') ? ledbuttons[led].blink : ledbuttons[led].switch;
+                            //            b.style.background = (stat !== 'off') ? (stat !== 'on') ? (stat === 'stop') ? '#1abc9c' : '#16a085' : '#2ecc71' : '#27ae60';
+                            //            b.innerText = (stat !== 'stop') ? (stat !== 'blinking') ? (stat === 'on') ? 'off' : 'on' : 'stop' : 'blink';
+                            //         });
+                            //     } else if (json.type === 'buttons') {
+                            //        Object.keys(json.data).forEach(function (button) {
+                            //           var but = clickButtons[button];
+                            //            if (but.sT) {
+                            //                clearTimeout(but.sT);
+                            //            }
+                            //            but.counter.innerText = json.data[button].clicks;
+                            //            but.clicks.style.color = '#e74c3c';
+                            //            but.sT = setTimeout(function () {
+                            //                but.clicks.style.color = '#aaa';
+                            //            }, 2000);
+                            //        })
+                            //     }
+                            }
+                        };
+                    },
+                    send: function (data) {
+                        //this.connection.send(data);
+                    },
+                    close: function () {
+                        //this.connection.close();
+                    }
+                });
+                webSocketConnection.init();
+
+            }(document, window));
+        </script>
+    </body>
+</html>

@@ -1,0 +1,17 @@
+{
+    "port": 5050,
+    "sensors": {
+        "garageSensor": {
+            "name": "Garage",
+            "pin": 4,
+            "edge": "both",
+            "openingTimeout": 5000
+        }
+    },
+    "relays": {
+        "garageRelay": {
+            "sensorId": "garageSensor",
+            "pin": 23
+        }
+    }
+}
