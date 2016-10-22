@@ -29,37 +29,61 @@ var sensorObjects = {};
 var sensors = [];
 
 var states = {
-    0: 'closed',
-    1: 'open'
+    0: 'open',
+    1: 'closed'
 }
 
 var gi = 0;
+var garageDoorTimeout = null;
+var closed = false;
 
 function init() {
     if(config.sensors) {
         console.log('Initializing configured sensors and relays...');
         var i = 0;
+        setTimeout(function () {
+            Object.keys(sensorObjects).forEach(function (sensorId) {
+                var sensor = sensorObjects[sensorId];
+                var state = sensors[sensor.index].readSync();
+                sensorObjects[sensorId].value = state;
+                sensorObjects[sensorId].state = states[state];
+            });
+            wss.emit('sendAll', JSON.stringify({type: 'sensors', data: sensorObjects }));
+        }, 10*60*1000);
+
         Object.keys(config.sensors).forEach(function(sensorId) {
             var sensor = config.sensors[sensorId];
             console.log('Initializing sensor \'' + sensor.name + '\' on pin ' + sensor.pin);
             sensors[i] = new gpio(sensor.pin, 'in', 'both', { persistentWatch: true });
             var state = sensors[i].readSync();
+            closed = state === 1;
             console.log('Current state of sensor \'' + sensor.name + '\' is: \'' + states[state] + '\'');
             sensorObjects[sensorId] = { index: i, name: sensor.name, state: states[state], value: state, occurred: new Date().toUTCString() };
             sensors[i].watch(function(err, state) {
                 if(err) {
                     throw err;
                 }
+
+                if(garageDoorTimeout) {
+                    clearTimeout(garageDoorTimeout);
+                    garageDoorTimeout = null;
+                }
                 console.log('State of sensor \'' + sensor.name + '\' changed to: \'' + states[state] + '\'');
                 if(state === 1) {
-                    sensorObjects[sensorId].state = "opening...";
                     sensorObjects[sensorId].value = state;
-                    setTimeout(function() {
-                        sensorObjects[sensorId].state = states[state];
-                        sensorObjects[sensorId].occurred = new Date();
-                        wss.emit('sendAll', JSON.stringify({ type: 'sensors', data: sensorObjects }));
-                    }, sensor.openingTimeout);
+                    if(closed) {
+                        sensorObjects[sensorId].state = "opening...";
+                    } else {
+                        sensorObjects[sensorId].state = "closing...";
+                        garageDoorTimeout = setTimeout(function() {
+                            closed = true;
+                            sensorObjects[sensorId].state = states[state];
+                            sensorObjects[sensorId].occurred = new Date();
+                            wss.emit('sendAll', JSON.stringify({ type: 'sensors', data: sensorObjects }));
+                        }, sensor.openCloseDuration);
+                    }
                 } else {
+                    closed = false;
                     sensorObjects[sensorId].state = states[state];
                     sensorObjects[sensorId].value = state;
                 }
