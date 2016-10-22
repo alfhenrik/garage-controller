@@ -41,7 +41,7 @@ function init() {
     if(config.sensors) {
         console.log('Initializing configured sensors and relays...');
         var i = 0;
-        setTimeout(function () {
+        setInterval(function () {
             Object.keys(sensorObjects).forEach(function (sensorId) {
                 var sensor = sensorObjects[sensorId];
                 var state = sensors[sensor.index].readSync();
